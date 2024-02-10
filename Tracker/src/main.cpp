@@ -13,6 +13,13 @@
 #define FIREBASE_KEY "AIzaSyCQ-Sf_XghIsAJZB_qqIrCl3ZGF498x83g"
 #define FIREBASE_DB_URL "https://plant-tracker-001-default-rtdb.firebaseio.com/"
 
+/**
+ * This program uses a capactive soil sensor to monitor soil moisture levels,
+ * sending updates to a Firebase Realtime Database.
+ *
+ * Soil Sensor:
+ * https://wiki.dfrobot.com/Capacitive_Soil_Moisture_Sensor_SKU_SEN0193
+ */
 FirebaseData fbDataDTO;
 FirebaseAuth fbAuth;
 FirebaseConfig fbConfig;
@@ -20,6 +27,9 @@ FirebaseConfig fbConfig;
 unsigned long sendDataPrevMillis = 0;
 int count = 0;
 bool signupOK = false;
+
+const int sensorPin = 36;
+int sensorValue;
 
 void setupWifi();
 void setupFirebase();
@@ -36,6 +46,11 @@ void loop() {
   if (Firebase.ready() && signupOK &&
       (millis() - sendDataPrevMillis > 15000 || sendDataPrevMillis == 0)) {
     sendDataPrevMillis = millis();
+
+    // Read the moisture sensor
+    sensorValue = analogRead(sensorPin);
+    Serial.printf("Sensor: %d\n", sensorValue);
+
     // Write an Int number on the database path test/int
     if (Firebase.RTDB.setInt(&fbDataDTO, "test/int", count)) {
       Serial.printf("PASSED\n");
