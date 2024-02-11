@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #if defined(ESP32)
 #include <WiFi.h>
+#include <esp_sleep.h>
 #endif
 #include <Firebase_ESP_Client.h>
 
@@ -8,10 +9,17 @@
 #include "addons/TokenHelper.h"
 
 #define WIFI_SSID "The Internet"
-#define WIFI_PASS "FuckEarls69" // Read from .env or something to omit from code
+#define WIFI_PASS "FuckEarls69" // Read from .env or something to omit from repo
 
-#define FIREBASE_KEY "AIzaSyCQ-Sf_XghIsAJZB_qqIrCl3ZGF498x83g"
+#define FIREBASE_KEY                                                           \
+  "AIzaSyCQ-Sf_XghIsAJZB_qqIrCl3ZGF498x83g" // Read from .env or something to
+                                            // omit from repo
 #define FIREBASE_DB_URL "https://plant-tracker-001-default-rtdb.firebaseio.com/"
+
+#define HOUR 3600e6 // Hour in microseconds
+#define MINUTE 60e6 // Minute in microseconds
+
+#define MOISTURE_SENSOR 36
 
 /**
  * This program uses a capactive soil sensor to monitor soil moisture levels,
@@ -24,56 +32,7 @@ FirebaseData fbDataDTO;
 FirebaseAuth fbAuth;
 FirebaseConfig fbConfig;
 
-unsigned long sendDataPrevMillis = 0;
-int count = 0;
 bool signupOK = false;
-
-const int sensorPin = 36;
-int sensorValue;
-
-void setupWifi();
-void setupFirebase();
-
-void setup() {
-  Serial.begin(115200);
-
-  setupWifi();
-  setupFirebase();
-}
-
-void loop() {
-  // TODO: Login or Keep auth instead of signing up everytime
-  if (Firebase.ready() && signupOK &&
-      (millis() - sendDataPrevMillis > 15000 || sendDataPrevMillis == 0)) {
-    sendDataPrevMillis = millis();
-
-    // Read the moisture sensor
-    sensorValue = analogRead(sensorPin);
-    Serial.printf("Sensor: %d\n", sensorValue);
-
-    // Write an Int number on the database path test/int
-    if (Firebase.RTDB.setInt(&fbDataDTO, "test/int", count)) {
-      Serial.printf("PASSED\n");
-      Serial.printf("PATH: %s\n", fbDataDTO.dataPath());
-      Serial.printf("TYPE: %s\n", fbDataDTO.dataType());
-    } else {
-      Serial.printf("FAILED\n");
-      Serial.printf("REASON: %s\n", fbDataDTO.errorReason());
-    }
-    count++;
-
-    // Write an Float number on the database path test/float
-    if (Firebase.RTDB.setFloat(&fbDataDTO, "test/float",
-                               0.01 + random(0, 100))) {
-      Serial.printf("PASSED\n");
-      Serial.printf("PATH: %s\n", fbDataDTO.dataPath());
-      Serial.printf("TYPE: %s\n", fbDataDTO.dataType());
-    } else {
-      Serial.printf("FAILED\n");
-      Serial.printf("REASON: %s\n", fbDataDTO.errorReason());
-    }
-  }
-}
 
 /**
  * Connect to wifi
@@ -114,4 +73,43 @@ void setupFirebase() {
 
   Firebase.begin(&fbConfig, &fbAuth);
   Firebase.reconnectWiFi(true);
+}
+
+void setup() {
+  Serial.begin(115200);
+
+  esp_sleep_enable_timer_wakeup(MINUTE);
+
+  setupWifi();
+  setupFirebase();
+}
+
+void loop() {
+  // Enter deep sleep
+  esp_deep_sleep_start();
+
+  // Read sensor and update in firebase if signed up
+  if (Firebase.ready() && signupOK) {
+
+    // Read the moisture sensor
+    int moisture = analogRead(MOISTURE_SENSOR);
+
+    // Build the data payload with a server timestamp
+    char payloadBuffer[80];
+    sprintf(payloadBuffer,
+            "{\"timestamp\": {\".sv\": \"timestamp\"}, \"value\": %d}",
+            moisture);
+
+    // Upload to Firebase
+    if (Firebase.RTDB.push(&fbDataDTO, "sensor_data", String(payloadBuffer))) {
+      Serial.println("Data uploaded successfully");
+    } else {
+      Serial.println("Error uploading data");
+      Serial.println(fbDataDTO.errorReason());
+    }
+
+    free(payloadBuffer);
+  } else {
+    Serial.println("Error with firebase and/or signup");
+  }
 }
