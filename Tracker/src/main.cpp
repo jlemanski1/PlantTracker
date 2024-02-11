@@ -8,13 +8,7 @@
 #include "addons/RTDBHelper.h"
 #include "addons/TokenHelper.h"
 
-#define WIFI_SSID "***REMOVED***"
-#define WIFI_PASS "***REMOVED***" // Read from .env or something to omit from repo
-
-#define FIREBASE_KEY                                                           \
-  "***REMOVED***" // Read from .env or something to
-                                            // omit from repo
-#define FIREBASE_DB_URL "***REMOVED***"
+#include "secrets.h"
 
 #define HOUR 3600e6 // Hour in microseconds
 #define MINUTE 60e6 // Minute in microseconds
@@ -22,13 +16,16 @@
 #define MOISTURE_SENSOR 36
 
 /**
- * This program uses a capactive soil sensor to monitor soil moisture levels,
- * sending updates to a Firebase Realtime Database.
+ * Plant Tracker
+ *
+ * This program is designed to run on an ESP32-WROOM-32D based microcontroller,
+ * and uses a capacitive soil moisture sensor to read soil moisture content,
+ * pushing the values to a Firebase Realtime Database.
  *
  * Soil Sensor:
  * https://wiki.dfrobot.com/Capacitive_Soil_Moisture_Sensor_SKU_SEN0193
  */
-FirebaseData fbDataDTO;
+FirebaseData fbData;
 FirebaseAuth fbAuth;
 FirebaseConfig fbConfig;
 
@@ -75,6 +72,10 @@ void setupFirebase() {
   Firebase.reconnectWiFi(true);
 }
 
+/**
+ * Runs once on initial start or when hardware reset.
+ * Sets the deep sleep timer, connects to wifi and Firebase
+ */
 void setup() {
   Serial.begin(115200);
 
@@ -84,6 +85,10 @@ void setup() {
   setupFirebase();
 }
 
+/**
+ * Main loop: Initiates deep sleep for the configured time, then wakes
+ * and uploads the sensor value to Firebase Real Time Database
+ */
 void loop() {
   // Enter deep sleep
   esp_deep_sleep_start();
@@ -95,19 +100,20 @@ void loop() {
     int moisture = analogRead(MOISTURE_SENSOR);
 
     // Build the data payload with a server timestamp
-    char payloadBuffer[80];
+    char payloadBuffer[100];
     sprintf(payloadBuffer,
             "{\"timestamp\": {\".sv\": \"timestamp\"}, \"value\": %d}",
             moisture);
 
     // Upload to Firebase
-    if (Firebase.RTDB.push(&fbDataDTO, "sensor_data", String(payloadBuffer))) {
+    if (Firebase.RTDB.push(&fbData, "sensor_data", String(payloadBuffer))) {
       Serial.println("Data uploaded successfully");
     } else {
       Serial.println("Error uploading data");
-      Serial.println(fbDataDTO.errorReason());
+      Serial.println(fbData.errorReason());
     }
 
+    // Free the buffer from memory
     free(payloadBuffer);
   } else {
     Serial.println("Error with firebase and/or signup");
