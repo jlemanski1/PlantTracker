@@ -5,7 +5,7 @@ The Plant Tracker project is comprised of an ESP32 microcontroller, a capacitive
 
 
 ![Overview diagram of the data flow](../Assets/Plant%20Tracker.svg)
-<img src="../Assets/Plant%20Tracker.svg">
+<img src="https://github.com/jlemanski1/PlantTracker/blob/main/Assets/Plant%20Tracker.svg">
 
 ---
 ## Hardware
