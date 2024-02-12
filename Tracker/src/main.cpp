@@ -11,7 +11,7 @@
 #include "secrets.h"
 
 #define HOUR 3600e6 // Hour in microseconds
-#define MINUTE 60e6 // Minute in microseconds
+#define MINUTE 60e6 // Minute in microseconds, used for testing
 
 #define MOISTURE_SENSOR 36
 
@@ -69,7 +69,7 @@ void setupFirebase() {
   fbConfig.token_status_callback = tokenStatusCallback;
 
   Firebase.begin(&fbConfig, &fbAuth);
-  Firebase.reconnectWiFi(true);
+  Firebase.reconnectNetwork(true);
 }
 
 /**
@@ -79,7 +79,7 @@ void setupFirebase() {
 void setup() {
   Serial.begin(115200);
 
-  esp_sleep_enable_timer_wakeup(MINUTE);
+  esp_sleep_enable_timer_wakeup(MINUTE); // TODO: Set to HOUR after testing
 
   setupWifi();
   setupFirebase();
