@@ -1,9 +1,7 @@
 #include <Arduino.h>
-#if defined(ESP32)
+#include <Firebase_ESP_Client.h>
 #include <WiFi.h>
 #include <esp_sleep.h>
-#endif
-#include <Firebase_ESP_Client.h>
 
 #include "addons/RTDBHelper.h"
 #include "addons/TokenHelper.h"
@@ -13,7 +11,7 @@
 #define HOUR 3600e6 // Hour in microseconds
 #define MINUTE 60e6 // Minute in microseconds, used for testing
 
-#define MOISTURE_SENSOR 36
+#define MOISTURE_SENSOR 36 // GPIO pin of the sensor
 
 /**
  * Plant Tracker
@@ -56,13 +54,8 @@ void setupFirebase() {
   fbConfig.api_key = FIREBASE_KEY;
   fbConfig.database_url = FIREBASE_DB_URL;
 
-  // Sign up new anonymous account
-  if (Firebase.signUp(&fbConfig, &fbAuth, "", "")) {
-    Serial.println("Sign up successful");
-    signupOK = true;
-  } else {
-    Serial.printf("%s\n", fbConfig.signer.signupError.message.c_str());
-  }
+  fbAuth.user.email = FIREBASE_EMAIL;
+  fbAuth.user.password = FIREBASE_PASSWORD;
 
   /* Assign the callback function for the long running token generation task
    * from "addons/TokenHelper"*/
@@ -86,36 +79,29 @@ void setup() {
 }
 
 /**
- * Main loop: Initiates deep sleep for the configured time, then wakes
- * and uploads the sensor value to Firebase Real Time Database
+ * Main loop: Uploads the sensor value to Firebase Real Time Database then
+ * initiates deep sleep for the configured time.
  */
 void loop() {
-  // Enter deep sleep
-  esp_deep_sleep_start();
-
-  // Read sensor and update in firebase if signed up
-  if (Firebase.ready() && signupOK) {
+  if (Firebase.ready()) {
 
     // Read the moisture sensor
     int moisture = analogRead(MOISTURE_SENSOR);
 
-    // Build the data payload with a server timestamp
-    char payloadBuffer[100];
-    sprintf(payloadBuffer,
-            "{\"timestamp\": {\".sv\": \"timestamp\"}, \"value\": %d}",
-            moisture);
+    FirebaseJson json;
 
-    // Upload to Firebase
-    if (Firebase.RTDB.push(&fbData, "sensor_data", String(payloadBuffer))) {
-      Serial.println("Data uploaded successfully");
-    } else {
-      Serial.println("Error uploading data");
-      Serial.println(fbData.errorReason());
-    }
+    json.set("moisture", moisture);
 
-    // Free the buffer from memory
-    free(payloadBuffer);
+    // Push data with timestamp
+    Serial.printf("Push data with timestamp... %s\n",
+                  Firebase.RTDB.pushJSON(&fbData, "/", &json)
+                      ? "Success"
+                      : fbData.errorReason().c_str());
+
   } else {
     Serial.println("Error with firebase and/or signup");
   }
+
+  // Enter deep sleep
+  esp_deep_sleep_start();
 }
