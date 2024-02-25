@@ -22,6 +22,7 @@ Due to the Wifi & Firebase connections, there is some configuration required bef
  1. Create a Firebase project & create a Realtime Database
 	 a. From Project > Settings, note the webApiKey
 	 b. From the realtime database section, note the database url
+	 c. From the authentication tab, create a user with an email and password (Does not have to be a real email)
  2. Clone the repo
  3. In the `src` directory, create a file named `secrets.h`
 	 a. In this file, paste the following code:
@@ -33,6 +34,9 @@ Due to the Wifi & Firebase connections, there is some configuration required bef
 
 	#define  FIREBASE_KEY  "YOUR_FIREBASE_API_KEY"
 	#define  FIREBASE_DB_URL  "YOUR_FIREBASE_RTDB_URL"
+
+	#define FIREBASE_EMAIL "YOUR_FIREBASE_USER_EMAIL"
+	#define FIREBASE_PASSWORD "YOUR_FIREBASE_USER_PASSWORD"
 	#endif
 	```
 4. Build the code & Flash it to your ESP32 (You can either use the Arduino IDE or PlatformIO in VSCode for this step)
