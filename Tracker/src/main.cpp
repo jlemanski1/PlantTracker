@@ -72,7 +72,8 @@ void setupFirebase() {
 void setup() {
   Serial.begin(115200);
 
-  esp_sleep_enable_timer_wakeup(MINUTE); // TODO: Set to HOUR after testing
+  // TODO: Set to HOUR or 6 hours after testing
+  esp_sleep_enable_timer_wakeup(MINUTE);
 
   setupWifi();
   setupFirebase();
@@ -92,8 +93,8 @@ void loop() {
 
     json.set("moisture", moisture);
 
-    // Push data with timestamp
-    Serial.printf("Push data with timestamp... %s\n",
+    // Push data
+    Serial.printf("Push data... %s\n",
                   Firebase.RTDB.pushJSON(&fbData, "/", &json)
                       ? "Success"
                       : fbData.errorReason().c_str());
