@@ -1,0 +1,32 @@
+{
+    "version": {
+        "versionNumber": "1",
+        "updateTime": "2024-02-25T20:03:04.522435Z",
+        "updateUser": {
+            "email": "jlemanski1@gmail.com"
+        },
+        "updateOrigin": "CONSOLE",
+        "updateType": "INCREMENTAL_UPDATE"
+    },
+    "parameterGroups": {
+        "Moisture Sensor": {
+            "description": "Configurations related to the capacitive soil moisture sensor",
+            "parameters": {
+                "air_value": {
+                    "defaultValue": {
+                        "value": "520"
+                    },
+                    "description": "Value the soil moisture sensor reads when in air",
+                    "valueType": "NUMBER"
+                },
+                "water_value": {
+                    "defaultValue": {
+                        "value": "260"
+                    },
+                    "description": "Value the soil moisture sensor reads when in water/soaked soil",
+                    "valueType": "NUMBER"
+                }
+            }
+        }
+    }
+}
