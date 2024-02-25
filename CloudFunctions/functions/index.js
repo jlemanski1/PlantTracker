@@ -16,17 +16,19 @@ exports.handleMoistureValue = onValueCreated("/*", async (event) => {
     const moisture = event.data.val().moisture;
     console.log(`Value written to RTDB->moisture: ${moisture}`);
 
+    // Get moisture sensor calibration values from remtoe config
     const { airValue, waterValue } = await getMoistureSensorConfig();
     console.log(`Soil sensor values fetched from RemoteConfig->{air: ${airValue}, water: ${waterValue}}`);
 
 
-    // If value is "dry", send out email
-    const needsWater = false;
+    // Plant needs water if the soil is within 10% of the dry value
+    const needsWater = moisture >= airValue * 0.9;
     if (needsWater) {
         sendEmail(moisture);
     }
 
 });
+
 
 
 /**
