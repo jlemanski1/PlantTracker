@@ -14,8 +14,6 @@ The Plant Tracker project is comprised of an ESP32 microcontroller, a capacitive
 - Li-on battery
 
 
-
-
 ## Set up & Configuration
 Due to the Wifi & Firebase connections, there is some configuration required before you can build and flash the image.
 
@@ -39,7 +37,8 @@ Due to the Wifi & Firebase connections, there is some configuration required bef
 	#define FIREBASE_PASSWORD "YOUR_FIREBASE_USER_PASSWORD"
 	#endif
 	```
-4. Build the code & Flash it to your ESP32 (You can either use the Arduino IDE or PlatformIO in VSCode for this step)
+	Note: cloud function secrets (ie. api keys) are managed with [Secret Manager](https://firebase.google.com/docs/functions/config-env?gen=2nd#create-secret)
+4. Build the code & Flash it to your ESP32 using PlatformIO
 
 
 
