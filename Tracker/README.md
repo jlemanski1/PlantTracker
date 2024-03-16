@@ -48,7 +48,6 @@ Due to the Wifi & Firebase connections, there is some configuration required bef
 
 
 ## Contributing
-
 1. [Fork it](<https://github.com/jlemanski1/PlantTracker/fork>)
 2. Create your feature branch (`git checkout -b feature/fooBar`)
 3. Commit your changes (`git commit -am 'Add some fooBar'`)
