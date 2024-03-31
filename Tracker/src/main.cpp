@@ -72,8 +72,7 @@ void setupFirebase() {
 void setup() {
   Serial.begin(115200);
 
-  // TODO: Set to HOUR or 6 hours after testing
-  esp_sleep_enable_timer_wakeup(MINUTE);
+  esp_sleep_enable_timer_wakeup(HOUR);
 
   setupWifi();
   setupFirebase();
